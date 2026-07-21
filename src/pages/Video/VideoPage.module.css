@@ -1,0 +1,54 @@
+.hero {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.loading {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.error {
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.backLink {
+  margin-top: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: 32px;
+  }
+}

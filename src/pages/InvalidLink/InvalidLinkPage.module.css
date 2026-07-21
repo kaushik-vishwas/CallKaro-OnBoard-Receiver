@@ -1,0 +1,17 @@
+.wrap {
+  padding: 48px 8px;
+  text-align: center;
+  display: grid;
+  gap: 10px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}

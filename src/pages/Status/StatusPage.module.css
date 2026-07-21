@@ -1,0 +1,225 @@
+.loading {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.pendingHero {
+  margin: 8px 0 20px;
+  padding: 36px 24px 40px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #8b5cf6 0%, #6d28d9 100%);
+  color: #fff;
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.clock {
+  width: 88px;
+  height: 88px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.16);
+  display: grid;
+  place-items: center;
+  color: #fde68a;
+}
+
+.pendingTitle {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  max-width: 280px;
+  line-height: 1.2;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 8px 16px;
+  box-shadow: 0 10px 30px rgba(17, 24, 39, 0.06);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.check {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  display: grid;
+  place-items: center;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #d1d5db;
+  margin-right: 8px;
+}
+
+.refreshWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.hint {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.link {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.error {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Rejected */
+.rejectWrap {
+  padding: 48px 12px 24px;
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.rejectIcon {
+  width: 88px;
+  height: 88px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #ef4444;
+  display: grid;
+  place-items: center;
+}
+
+.rejectTitle {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ef4444;
+  letter-spacing: -0.03em;
+}
+
+.rejectDue {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.rejectReason {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.rejectBtn {
+  margin-top: 24px;
+  max-width: 280px;
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+/* Approved */
+.approveWrap {
+  padding: 48px 12px 24px;
+  text-align: center;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+
+.party {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #16a34a;
+  display: grid;
+  place-items: center;
+}
+
+.approveTitle {
+  font-size: 28px;
+  font-weight: 800;
+  color: #16a34a;
+  letter-spacing: -0.03em;
+}
+
+.approveSubtitle {
+  font-size: 15px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.downloadBtn {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 220px;
+  height: 50px;
+  padding: 0 20px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid #111827;
+  color: #111827;
+  font-weight: 800;
+  font-size: 15px;
+  text-decoration: none;
+  background: #fff;
+}
+
+@media (min-width: 768px) {
+  .pendingHero {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .card {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+}

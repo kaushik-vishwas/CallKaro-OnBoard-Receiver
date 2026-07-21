@@ -1,0 +1,33 @@
+.wrap {
+  display: grid;
+  gap: 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background: var(--color-primary-chip);
+  color: #6b21a8;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.error {
+  font-size: 12px;
+  color: var(--color-danger);
+}
