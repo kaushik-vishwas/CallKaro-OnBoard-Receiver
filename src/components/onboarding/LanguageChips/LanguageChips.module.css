@@ -27,6 +27,17 @@
   color: #fff;
 }
 
+.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
 .error {
   font-size: 12px;
   color: var(--color-danger);

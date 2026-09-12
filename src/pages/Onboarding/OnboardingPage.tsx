@@ -128,6 +128,9 @@ export function OnboardingPage() {
       next.bio = 'Write a short bio (at least 20 characters).';
     }
     if (!languages.length) next.languages = 'Select at least one language.';
+    if (languages.length > 3) {
+      next.languages = 'You can select a maximum of 3 languages.';
+    }
     if (!bank.holderName.trim()) next.bank = 'Account holder name is required.';
     if (!bank.accountNumber.trim() || !bank.ifsc.trim()) {
       next.bank = 'Bank account number and IFSC are required.';
@@ -258,13 +261,14 @@ export function OnboardingPage() {
 
       <FormSection
         title="Languages"
-        subtitle="Select all languages you can speak"
+        subtitle="Select up to 3 languages you can speak"
         required
       >
         <LanguageChips
           options={LANGUAGE_OPTIONS}
           value={languages}
           onChange={setLanguages}
+          max={3}
           error={errors.languages}
         />
       </FormSection>

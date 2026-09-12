@@ -1,9 +1,10 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Navigate, useNavigate} from 'react-router-dom';
 import {
   fetchOnboarding,
   saveOnboarding,
   submitOnboarding,
+  uploadPhoto,
   uploadVideo,
   type OnboardingReceiver,
 } from '../../api/onboarding';
@@ -12,6 +13,7 @@ import {useOnboardingRoute} from '../../hooks/useOnboardingRoute';
 import {OnboardingLayout} from '../../components/layout/OnboardingLayout/OnboardingLayout';
 import {VideoRecorder} from '../../components/onboarding/VideoRecorder/VideoRecorder';
 import {Button} from '../../components/ui/Button/Button';
+import {captureVideoFaceFrame} from '../../utils/captureVideoFaceFrame';
 import styles from './VideoPage.module.css';
 
 export function VideoPage() {
@@ -22,9 +24,26 @@ export function VideoPage() {
   const [receiver, setReceiver] = useState<OnboardingReceiver | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [faceImageUrl, setFaceImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  /** Keep blob URL alive; don't revoke in Strict Mode effect churn. */
+  const localBlobUrlRef = useRef<string>('');
+
+  function revokeLocalBlob() {
+    if (localBlobUrlRef.current) {
+      URL.revokeObjectURL(localBlobUrlRef.current);
+      localBlobUrlRef.current = '';
+    }
+  }
+
+  function setLocalPreview(blob: Blob) {
+    revokeLocalBlob();
+    const url = URL.createObjectURL(blob);
+    localBlobUrlRef.current = url;
+    setPreviewUrl(url);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -37,7 +56,15 @@ export function VideoPage() {
         setReceiver(r);
         if (r.kyc?.videoUrl) {
           setVideoUrl(r.kyc.videoUrl);
-          setPreviewUrl(r.kyc.videoUrl);
+          // Prefer keeping local blob if we already have one; else show remote.
+          if (!localBlobUrlRef.current) {
+            setPreviewUrl(r.kyc.videoUrl);
+          }
+        }
+        if (r.kyc?.faceImageUrl) {
+          setFaceImageUrl(r.kyc.faceImageUrl);
+        } else if (r.kyc?.videoThumb) {
+          setFaceImageUrl(r.kyc.videoThumb);
         }
       } catch {
         if (!cancelled) setReceiver(null);
@@ -53,27 +80,46 @@ export function VideoPage() {
 
   useEffect(() => {
     return () => {
-      if (previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+      revokeLocalBlob();
     };
-  }, [previewUrl]);
+  }, []);
 
   async function onRecorded(blob: Blob) {
     setError('');
     setUploading(true);
     try {
-      const localUrl = URL.createObjectURL(blob);
-      setPreviewUrl(localUrl);
+      setLocalPreview(blob);
       const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+
+      let faceUrl = '';
+      try {
+        const frame = await captureVideoFaceFrame(blob);
+        const faceFile = new File([frame], 'kyc-face.jpg', {
+          type: 'image/jpeg',
+        });
+        const faceUpload = await uploadPhoto(faceFile);
+        faceUrl = faceUpload.url;
+        setFaceImageUrl(faceUrl);
+      } catch {
+        faceUrl = receiver?.photos?.[0] || '';
+        setFaceImageUrl(faceUrl);
+      }
+
       const result = await uploadVideo(blob, `verification.${ext}`);
       setVideoUrl(result.url);
+      // Keep local blob preview (S3 signed URL often won't play in <video>).
       await saveOnboarding(token, {
         kyc: {
           videoUrl: result.url,
-          videoThumb: receiver?.photos?.[0] || '',
+          videoThumb: faceUrl || receiver?.photos?.[0] || '',
+          faceImageUrl: faceUrl || undefined,
         },
       });
     } catch (err) {
       setVideoUrl('');
+      setFaceImageUrl('');
+      revokeLocalBlob();
+      setPreviewUrl('');
       setError(err instanceof Error ? err.message : 'Failed to upload video.');
     } finally {
       setUploading(false);
@@ -81,9 +127,10 @@ export function VideoPage() {
   }
 
   function onClear() {
-    if (previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+    revokeLocalBlob();
     setPreviewUrl('');
     setVideoUrl('');
+    setFaceImageUrl('');
     setError('');
   }
 
@@ -98,7 +145,8 @@ export function VideoPage() {
       await submitOnboarding(token, {
         kyc: {
           videoUrl,
-          videoThumb: receiver?.photos?.[0] || '',
+          videoThumb: faceImageUrl || receiver?.photos?.[0] || '',
+          faceImageUrl: faceImageUrl || undefined,
         },
       });
       navigate(statusPath, {replace: true});

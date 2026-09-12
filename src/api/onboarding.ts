@@ -20,6 +20,7 @@ export type OnboardingReceiver = {
   kyc: {
     videoUrl?: string;
     videoThumb?: string;
+    faceImageUrl?: string;
     documents: Array<{
       id: string;
       title: string;
@@ -38,6 +39,7 @@ export type OnboardingPayload = {
   kyc?: {
     videoUrl?: string;
     videoThumb?: string;
+    faceImageUrl?: string;
     documents?: OnboardingReceiver['kyc']['documents'];
   };
 };
@@ -133,7 +135,11 @@ export async function uploadDocument(
 
 export async function uploadVideo(file: Blob, filename = 'verification.webm') {
   const formData = new FormData();
-  formData.append('file', file, filename);
+  // Normalize MIME so multer accepts MediaRecorder output (e.g. webm;codecs=vp9).
+  const baseType = (file.type || 'video/webm').split(';')[0].trim() || 'video/webm';
+  const safeBlob =
+    file.type === baseType ? file : new Blob([file], {type: baseType});
+  formData.append('file', safeBlob, filename);
   const response = await fetch(`${getApiBaseUrl()}/uploads/video`, {
     method: 'POST',
     body: formData,

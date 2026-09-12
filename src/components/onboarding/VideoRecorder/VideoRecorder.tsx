@@ -10,6 +10,26 @@ type VideoRecorderProps = {
   error?: string;
 };
 
+function pickRecorderMime(): string {
+  const candidates = [
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm',
+    'video/mp4',
+  ];
+  for (const type of candidates) {
+    if (
+      typeof MediaRecorder !== 'undefined' &&
+      MediaRecorder.isTypeSupported(type)
+    ) {
+      return type;
+    }
+  }
+  return '';
+}
+
 export function VideoRecorder({
   previewUrl,
   onRecorded,
@@ -18,6 +38,7 @@ export function VideoRecorder({
   error,
 }: VideoRecorderProps) {
   const liveRef = useRef<HTMLVideoElement>(null);
+  const previewRef = useRef<HTMLVideoElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -65,6 +86,22 @@ export function VideoRecorder({
     };
   }, [previewUrl]);
 
+  // Ensure recorded/remote preview actually loads (avoids black 0:00).
+  useEffect(() => {
+    const el = previewRef.current;
+    if (!previewUrl || !el) return;
+    el.pause();
+    el.removeAttribute('src');
+    el.load();
+    el.src = previewUrl;
+    el.load();
+    const tryPlay = () => {
+      void el.play().catch(() => undefined);
+    };
+    el.addEventListener('loadeddata', tryPlay, {once: true});
+    return () => el.removeEventListener('loadeddata', tryPlay);
+  }, [previewUrl]);
+
   function stopTracks() {
     streamRef.current?.getTracks().forEach(track => track.stop());
     streamRef.current = null;
@@ -75,35 +112,51 @@ export function VideoRecorder({
     if (!stream) return;
 
     chunksRef.current = [];
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-      ? 'video/webm;codecs=vp9'
-      : MediaRecorder.isTypeSupported('video/webm')
-        ? 'video/webm'
-        : '';
-
+    const mimeType = pickRecorderMime();
     const recorder = mimeType
       ? new MediaRecorder(stream, {mimeType})
       : new MediaRecorder(stream);
 
     recorderRef.current = recorder;
     recorder.ondataavailable = event => {
-      if (event.data.size > 0) chunksRef.current.push(event.data);
+      if (event.data && event.data.size > 0) {
+        chunksRef.current.push(event.data);
+      }
+    };
+    recorder.onerror = () => {
+      setRecording(false);
+      setCameraError('Recording failed. Try uploading a video file instead.');
     };
     recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, {
-        type: recorder.mimeType || 'video/webm',
-      });
+      const type =
+        (recorder.mimeType || mimeType || 'video/webm').split(';')[0] ||
+        'video/webm';
+      const blob = new Blob(chunksRef.current, {type});
       stopTracks();
       setCameraReady(false);
+      setRecording(false);
+      if (blob.size < 1000) {
+        setCameraError('Recording was too short. Please record again.');
+        return;
+      }
       onRecorded(blob);
     };
-    recorder.start();
+    // Timeslice so dataavailable fires during recording (more reliable blobs).
+    recorder.start(250);
     setRecording(true);
   }
 
   function stopRecording() {
-    recorderRef.current?.stop();
-    setRecording(false);
+    const recorder = recorderRef.current;
+    if (!recorder || recorder.state === 'inactive') return;
+    try {
+      if (recorder.state === 'recording') {
+        recorder.requestData();
+      }
+    } catch {
+      // ignore
+    }
+    recorder.stop();
   }
 
   function onFileSelected(files: FileList | null) {
@@ -124,10 +177,12 @@ export function VideoRecorder({
       <div className={styles.stage}>
         {previewUrl ? (
           <video
+            ref={previewRef}
             className={styles.video}
-            src={previewUrl}
             controls
             playsInline
+            preload="auto"
+            muted={false}
           />
         ) : (
           <video
@@ -168,7 +223,11 @@ export function VideoRecorder({
             onClick={() => fileRef.current?.click()}
             disabled={uploading || recording}
           >
-            {uploading ? <Loader2 size={16} className={styles.spin} /> : <Upload size={16} />}
+            {uploading ? (
+              <Loader2 size={16} className={styles.spin} />
+            ) : (
+              <Upload size={16} />
+            )}
             Upload video
           </button>
         )}
@@ -177,7 +236,7 @@ export function VideoRecorder({
       <input
         ref={fileRef}
         type="file"
-        accept="video/*"
+        accept="video/mp4,video/webm,video/quicktime,video/*"
         className={styles.hidden}
         onChange={event => onFileSelected(event.target.files)}
       />
@@ -185,7 +244,9 @@ export function VideoRecorder({
       {cameraError && !previewUrl ? (
         <p className={styles.hint}>{cameraError}</p>
       ) : null}
-      {recording ? <p className={styles.hint}>Recording… tap the button to stop</p> : null}
+      {recording ? (
+        <p className={styles.hint}>Recording… tap the button to stop</p>
+      ) : null}
       {error ? <p className={styles.error}>{error}</p> : null}
     </div>
   );

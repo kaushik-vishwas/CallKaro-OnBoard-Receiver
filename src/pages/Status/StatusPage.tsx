@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {Link, Navigate, useNavigate} from 'react-router-dom';
-import {AlertCircle, Check, Download, PartyPopper, RefreshCw, Timer, X} from 'lucide-react';
+import {AlertCircle, Check, PartyPopper, RefreshCw, Timer, X} from 'lucide-react';
 import {
   fetchOnboarding,
   retryOnboarding,
@@ -11,10 +11,6 @@ import {useOnboardingRoute} from '../../hooks/useOnboardingRoute';
 import {OnboardingLayout} from '../../components/layout/OnboardingLayout/OnboardingLayout';
 import {Button} from '../../components/ui/Button/Button';
 import styles from './StatusPage.module.css';
-
-const APP_DOWNLOAD_URL =
-  (import.meta.env.VITE_APP_DOWNLOAD_URL as string | undefined)?.trim() ||
-  'https://play.google.com/store';
 
 export function StatusPage() {
   const {token, formPath, videoPath} = useOnboardingRoute();
@@ -129,17 +125,16 @@ export function StatusPage() {
           </span>
           <h1 className={styles.approveTitle}>Yess! Profile Approved</h1>
           <p className={styles.approveSubtitle}>
-            Download Application For Start Earning.
+            Contact your agent to get the receiver app and start earning.
           </p>
-          <a
-            className={styles.downloadBtn}
-            href={APP_DOWNLOAD_URL}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <Download size={18} />
-            Download App
-          </a>
+          <div className={styles.agentNote}>
+            <p className={styles.agentNoteTitle}>How to get the app</p>
+            <p className={styles.agentNoteBody}>
+              The receiver APK is not available on the Play Store. Message your
+              agent and ask them to share the official receiver APK install file
+              with you.
+            </p>
+          </div>
         </div>
       </OnboardingLayout>
     );
